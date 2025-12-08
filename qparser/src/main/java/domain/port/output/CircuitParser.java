@@ -5,4 +5,5 @@ import domain.model.Circuit;
 
 public interface CircuitParser {
     Circuit parse(String script) throws ParsingException;
+    String getSupportedType();
 }
