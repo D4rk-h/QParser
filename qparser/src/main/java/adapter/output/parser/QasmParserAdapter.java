@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.CRC32;
 
 public class QasmParserAdapter implements CircuitParser {
     private final String supportedType = "QASM";
@@ -25,6 +26,7 @@ public class QasmParserAdapter implements CircuitParser {
 
     @Override
     public Circuit parse(String script) throws ParsingException {
+        //todo; implement a better design to manage circuit layers
         List<String> splitScript = List.of(script.split("\n"));
         if (!splitScript.getFirst().contains("OPENQASM")) throw new ParsingException("Wrong script format: Expected qasm");
         splitScript.addAll(Arrays.asList(script.split("\n")));
@@ -87,18 +89,33 @@ public class QasmParserAdapter implements CircuitParser {
                 }
                 for (String gate: controlledGates) {
                     if (line.contains(gate)) {
-                        Pattern p = Pattern.compile(this.patternCGates);
+                        Pattern p = Pattern.compile(patternCGates);
                         Matcher m = p.matcher(line);
                         if (m.matches()) {
                             String gateName = m.group(1);
                             String targets = m.group(2);
-                            String[] targetQubits = targets.split(",");
-                            // todo: generalize for multiple control qubits and take control and target as separate things
+                            String[] targetQubitsUnformatted = targets.split(",");
+                            for (int i = 0; i < targetQubitsUnformatted.length; i++) {
+                                targetQubitsUnformatted[i] = targetQubitsUnformatted[i].trim().replace("q[", "").replace("]", "").replace(";", "");
+                            }
+                            String[] controlQubitsUnformatted = new String[targetQubitsUnformatted.length];
+                            for (int i = 0; i < controlQubitsUnformatted.length - 1; i++) {
+                                controlQubitsUnformatted[i] = targetQubitsUnformatted[i];
+                                System.out.println(controlQubitsUnformatted[i]);
+                            }
+
+                            Gate cg = new Gate(
+                                    gateName,
+                                    new int[]{Integer.valueOf(targetQubitsUnformatted[targetQubitsUnformatted.length - 1])},
+                                    new int[]{Integer.valueOf(controlQubitsUnformatted[0])},
+                                    new String[]{}
+                            );
+                            layer.addGate(cg);
                         }
                     }
                 }
             }
-            }
+        }
         return null;
     }
 
