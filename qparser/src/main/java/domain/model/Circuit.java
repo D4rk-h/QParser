@@ -3,7 +3,8 @@ package domain.model;
 import java.util.List;
 
 public record Circuit(
-        String numberOfQubits,
+        int numberOfQubits,
+        int numberOfClBits,
         List<CircuitLayer> layers
 )
 {
