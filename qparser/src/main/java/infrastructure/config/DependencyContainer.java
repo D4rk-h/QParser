@@ -5,7 +5,7 @@ import adapter.input.rest.ApiRouteRegistry;
 import adapter.input.rest.HealthController;
 import adapter.input.rest.HttpExceptionHandler;
 import adapter.input.rest.mapper.CircuitDtoMapper;
-import adapter.output.parser.QasmParserAdapter;
+import adapter.output.parser.qasm.QasmParserAdapter;
 import adapter.output.parser.QiskitParserAdapter;
 import application.usecase.ParseCircuitUseCaseImpl;
 import domain.port.input.ParseCircuitUseCase;

@@ -1,57 +1,19 @@
-package adapter.output.parser;
+package adapter.output.parser.qasm;
 
 import domain.exception.ParsingException;
-import domain.model.Circuit;
 import domain.model.CircuitLayer;
 import domain.model.Gate;
 import domain.model.Measurement;
-import domain.port.output.CircuitParser;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class QasmParserAdapter implements CircuitParser {
-    private final String supportedType = "QASM";
+class QasmParsingUtils {
     private final String patternParamGates = "^(\\w+)\\(([^)]+)\\)\\s+(.+);?$";
     private final String patternCGates = "^(\\w+)\\s+(.+);?$";
-    private final List<String> rotationGates = List.of("rx", "rz", "ry", "u", "rxx", "rzz");
-    private final List<String> controlledGates = List.of(
-            "cx", "cz", "ch", "ccx", "swap", "c3x", "c4x", "cp", "cswap", "crx", "cry", "crz", "cu");
-    private final List<String> oneQubitGates = List.of("h", "x", "y", "z", "s", "sdg", "t", "tdg", "id");
-
-    public QasmParserAdapter() {
-    }
-
-    @Override
-    public Circuit parse(String script) throws ParsingException {
-        //todo; implement a better design to manage circuit layers
-        String[] lines = script.split("\n");
-        if (lines.length == 0 || !lines[0].contains("OPENQASM")) throw new ParsingException("Wrong script format: Expected qasm");
-        int nQubits = 0;
-        int nBits = 0;
-        List<CircuitLayer> layers = new ArrayList<>();
-        for (String line : lines) {
-            if (line.isEmpty() || line.startsWith("//")) continue;
-
-            if (line.contains("qreg")) {
-                nQubits = extractNumber(line);
-            } else if (line.contains("creg")) {
-                nBits = extractNumber(line);
-            } else if (line.contains("barrier") || line.contains("OPENQASM") || line.contains("include")) {
-                continue;
-            } else {
-                CircuitLayer layer = processLine(line);
-                if (layer != null) {
-                    layers.add(layer);
-                }
-            }
-        }
-        return new Circuit(nQubits, nBits, layers);
-    }
-
-    private CircuitLayer processLine(String line) throws ParsingException {
+    CircuitLayer processLine(String line, List<String> rotationGates,
+                             List<String> controlledGates, List<String> oneQubitGates) throws ParsingException {
         CircuitLayer layer = new CircuitLayer();
         if (line.contains("measure")) {
             processMeasurement(line, layer);
@@ -60,7 +22,7 @@ public class QasmParserAdapter implements CircuitParser {
 
         for (String gate : rotationGates) {
             if (line.matches("^" + gate + "\\(.*")) {
-                processRotationGate(line, gate, layer);
+                processRotationGate(line, gate, layer, patternParamGates);
                 return layer;
             }
         }
@@ -76,18 +38,17 @@ public class QasmParserAdapter implements CircuitParser {
 
         for (String gate : controlledGates) {
             if (line.startsWith(gate + " ")) {
-                processControlledGate(line, gate, layer);
+                processControlledGate(line, gate, layer, patternCGates);
                 return layer;
             }
         }
 
         for (String gate : oneQubitGates) {
             if (line.startsWith(gate + " ")) {
-                processOneQubitGate(line, gate, layer);
+                processOneQubitGate(line, gate, layer, patternCGates);
                 return layer;
             }
         }
-
         return null;
     }
 
@@ -104,7 +65,7 @@ public class QasmParserAdapter implements CircuitParser {
         }
     }
 
-    private void processRotationGate(String line, String gateName, CircuitLayer layer) {
+    private void processRotationGate(String line, String gateName, CircuitLayer layer, String patternParamGates) {
         Pattern p = Pattern.compile(patternParamGates);
         Matcher m = p.matcher(line);
         if (m.matches()) {
@@ -156,7 +117,7 @@ public class QasmParserAdapter implements CircuitParser {
         }
     }
 
-    private void processControlledGate(String line, String gateName, CircuitLayer layer) {
+    private void processControlledGate(String line, String gateName, CircuitLayer layer, String patternCGates) {
         Pattern p = Pattern.compile(patternCGates);
         Matcher m = p.matcher(line);
         if (m.matches()) {
@@ -175,7 +136,7 @@ public class QasmParserAdapter implements CircuitParser {
         }
     }
 
-    private void processOneQubitGate(String line, String gateName, CircuitLayer layer) {
+    private void processOneQubitGate(String line, String gateName, CircuitLayer layer, String patternCGates) {
         Pattern p = Pattern.compile(patternCGates);
         Matcher m = p.matcher(line);
         if (m.matches()) {
@@ -212,7 +173,7 @@ public class QasmParserAdapter implements CircuitParser {
         return qubits;
     }
 
-    private int extractNumber(String line) {
+    int extractNumber(String line) {
         Pattern p = Pattern.compile("\\[(\\d+)]");
         Matcher m = p.matcher(line);
         if (m.find()) {
@@ -221,7 +182,4 @@ public class QasmParserAdapter implements CircuitParser {
         return 0;
     }
 
-    public String getSupportedType() {
-        return this.supportedType;
-    }
 }
