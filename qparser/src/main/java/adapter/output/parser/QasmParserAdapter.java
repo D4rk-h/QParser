@@ -2,15 +2,22 @@ package adapter.output.parser;
 
 import domain.exception.ParsingException;
 import domain.model.Circuit;
+import domain.model.CircuitLayer;
+import domain.model.Gate;
+import domain.model.Measurement;
 import domain.port.output.CircuitParser;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class QasmParserAdapter implements CircuitParser { // todo: finish lists of gates and add special cases as rccx rc3x sx
+public class QasmParserAdapter implements CircuitParser {
     private final String supportedType = "QASM";
-    private final List<String> rotationGates = List.of("rx");
-    private final List<String> controlledGates = List.of("cx");
-    private final List<String> oneQubitGates = List.of("h");
+    private final String pattern = "^(\\w+)\\(([^)]+)\\)\\s+(.+);?$";
+    private final List<String> rotationGates = List.of("rx", "rz", "ry", "u", "rxx", "rzz");
+    private final List<String> controlledGates = List.of(
+            "cx", "cz", "ch", "ccx", "swap", "c3x", "c4x", "cp", "cswap", "crx", "cry", "crz", "cu");
+    private final List<String> oneQubitGates = List.of("h", "x", "y", "z", "s", "sdg", "t", "tdg", "id");
 
     public QasmParserAdapter() {
     }
@@ -25,11 +32,61 @@ public class QasmParserAdapter implements CircuitParser { // todo: finish lists 
                 int nQubits = line.charAt(7);
             } else if(line.contains("creg")) {
                 int nBits = line.charAt(7);
-            } else if(line.contains("measure")) {
-                int qubitIndex = line.charAt(10);
-                int bitIndex = line.charAt(18);
-            };
-
+            } else if(line.contains("barrier")) {
+                // skip barrier
+            } else {
+                CircuitLayer layer = new CircuitLayer();
+                if( line.contains("measure")) {
+                    int qubitIndex = line.charAt(10);
+                    int bitIndex = line.charAt(18);
+                    Measurement m = new Measurement(qubitIndex, bitIndex);
+                    layer.addMeasurement(m);
+                }
+                for (String gate: rotationGates) {
+                    if (line.contains(gate)) {
+                        Pattern p = Pattern.compile(this.pattern);
+                        Matcher m = p.matcher(line);
+                        if (m.matches()) {
+                            String gateName = m.group(1);
+                            String params = m.group(2);
+                            String targets = m.group(3);
+                            if (gateName.equals("u")) {
+                                String r1 = params.split(",")[0].trim().replace("pi", String.valueOf(Math.PI));
+                                String r2 = params.split(",")[1].trim().replace("pi", String.valueOf(Math.PI));
+                                String r3 = params.split(",")[2].trim().replace("pi", String.valueOf(Math.PI));
+                                Gate ug = new Gate(
+                                        gateName,
+                                        new int[]{targets.charAt(2)},
+                                        new int[]{},
+                                        new String[]{r1, r2, r3}
+                                );
+                                layer.addGate(ug);
+                            } else {
+                                String r = params.trim().replace("pi", String.valueOf(Math.PI));
+                                if(gateName.equals("rxx") || gateName.equals("rzz")) {
+                                    Gate rg = new Gate(gateName,
+                                            new int[]{targets.charAt(2), targets.charAt(8)}, new int[]{}, new String[]{r});
+                                    layer.addGate(rg);
+                                } else {
+                                    Gate rg = new Gate(gateName,
+                                            new int[]{targets.charAt(2)}, new int[]{}, new String[]{r});
+                                    layer.addGate(rg);
+                                }
+                            }
+                        }
+                    }
+                }
+                for (String gate: controlledGates) {
+                    if (line.contains(gate)) {
+                        // parse controlled gate
+                    }
+                }
+                for (String gate: oneQubitGates) {
+                    if (line.contains(gate)) {
+                        // parse one qubit gate
+                    }
+                }
+            }
         }
         return null;
     }

@@ -19,7 +19,7 @@ public class CircuitLayer {
         this.numberOfGates = this.gates.size();
     }
 
-    public void addMeasurements(Measurement measurement) {
+    public void addMeasurement(Measurement measurement) {
         this.measurements.add(measurement);
         this.numberOfMeasurements = this.measurements.size();
     }
