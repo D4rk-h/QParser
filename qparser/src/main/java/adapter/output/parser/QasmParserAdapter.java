@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
 
 public class QasmParserAdapter implements CircuitParser {
     private final String supportedType = "QASM";
-    private final String pattern = "^(\\w+)\\(([^)]+)\\)\\s+(.+);?$";
+    private final String patternParamGates = "^(\\w+)\\(([^)]+)\\)\\s+(.+);?$";
+    private final String patternCGates = "^(\\w+)\\s+(.+);?$";
     private final List<String> rotationGates = List.of("rx", "rz", "ry", "u", "rxx", "rzz");
     private final List<String> controlledGates = List.of(
             "cx", "cz", "ch", "ccx", "swap", "c3x", "c4x", "cp", "cswap", "crx", "cry", "crz", "cu");
@@ -44,7 +45,7 @@ public class QasmParserAdapter implements CircuitParser {
                 }
                 for (String gate: rotationGates) {
                     if (line.contains(gate)) {
-                        Pattern p = Pattern.compile(this.pattern);
+                        Pattern p = Pattern.compile(this.patternParamGates);
                         Matcher m = p.matcher(line);
                         if (m.matches()) {
                             String gateName = m.group(1);
@@ -76,18 +77,28 @@ public class QasmParserAdapter implements CircuitParser {
                         }
                     }
                 }
-                for (String gate: controlledGates) {
-                    if (line.contains(gate)) {
-                        // parse controlled gate
-                    }
-                }
                 for (String gate: oneQubitGates) {
                     if (line.contains(gate)) {
-                        // parse one qubit gate
+                        String gateName = String.valueOf(line.charAt(0));
+                        String targets = String.valueOf(line.charAt(4));
+                        Gate g = new Gate(gateName, new int[]{targets.charAt(2)}, new int[]{}, new String[]{});
+                        layer.addGate(g);
+                    }
+                }
+                for (String gate: controlledGates) {
+                    if (line.contains(gate)) {
+                        Pattern p = Pattern.compile(this.patternCGates);
+                        Matcher m = p.matcher(line);
+                        if (m.matches()) {
+                            String gateName = m.group(1);
+                            String targets = m.group(2);
+                            String[] targetQubits = targets.split(",");
+                            // todo: generalize for multiple control qubits and take control and target as separate things
+                        }
                     }
                 }
             }
-        }
+            }
         return null;
     }
 
