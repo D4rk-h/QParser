@@ -6,7 +6,7 @@ import adapter.input.rest.HealthController;
 import adapter.input.rest.HttpExceptionHandler;
 import adapter.input.rest.mapper.CircuitDtoMapper;
 import adapter.output.parser.qasm.QasmParserAdapter;
-import adapter.output.parser.QiskitParserAdapter;
+import adapter.output.parser.qiskit.QiskitParserAdapter;
 import application.usecase.ParseCircuitUseCaseImpl;
 import domain.port.input.ParseCircuitUseCase;
 import domain.port.output.CircuitParser;
