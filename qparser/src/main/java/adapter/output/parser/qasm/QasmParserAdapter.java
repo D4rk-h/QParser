@@ -40,7 +40,7 @@ public class QasmParserAdapter implements CircuitParser {
 
     @Override
     public String parseObject(Circuit circuit) throws ParsingException {
-        throw new ParsingException("Not implemented yet");
+        return utils.parseObject(circuit, circuit.numberOfQubits(), circuit.numberOfClBits());
     }
 
     public String getSupportedType() {
