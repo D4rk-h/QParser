@@ -16,10 +16,22 @@ public class QiskitParserAdapter implements CircuitParser {
 
     @Override
     public Circuit parse(String script) throws ParsingException {
+        int nQubits = 0;
+        int nClBits = 0;
         String[] lines = script.split("\n");
-
-        return null;
+        List<CircuitLayer> layers = new ArrayList<>();
+        for (String line : lines) {
+            if (line.isEmpty() || line.startsWith("#")) continue;
+            if (line.contains("QuantumRegister(")) nQubits = Integer.parseInt(String.valueOf(line.split(" ")[2].charAt(16)));
+            if (line.contains("ClassicalRegister(")) nClBits = Integer.parseInt(String.valueOf(line.split(" ")[2].charAt(18)));
+            CircuitLayer layer = utils.processLine(line);
+            if (layer != null) {
+                layers.add(layer);
+            }
+        }
+        return new Circuit(nQubits, nClBits, layers);
     }
+
 
     public String getSupportedType() {
         return this.supportedType;
