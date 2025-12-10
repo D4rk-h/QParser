@@ -22,10 +22,10 @@ public class CircuitController {
         this.exceptionHandler = httpExceptionHandler;
     }
 
-    public void parseCircuit(Context ctx) {
+    public void parseScriptToCircuit(Context ctx) {
         try {
             ParseRequestDto request = ctx.bodyAsClass(ParseRequestDto.class);
-            Circuit circuit = parser.execute(
+            Circuit circuit = parser.executeScriptToCircuit(
                     request.getScript(),
                     request.getScriptType()
             );

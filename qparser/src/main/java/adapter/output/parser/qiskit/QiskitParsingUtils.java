@@ -17,15 +17,15 @@ class QiskitParsingUtils {
         CircuitLayer layer = new CircuitLayer();
         if (line.isEmpty() || line.startsWith("#") || line.startsWith("from") ||
                 line.contains("QuantumRegister") || line.contains("ClassicalRegister") ||
-                line.contains("QuantumCircuit") || line.contains("append")) {
+                line.contains("QuantumCircuit")) {
             return null;
         }
-        if (line.contains("RC3XGate")) {
+        if (line.contains(".append(")) {
             String[] split = line.split(", ");
-            int target1 = split[1].charAt(8);
-            int target2 = split[2].charAt(7);
-            int target3 = split[3].charAt(7);
-            int target4 = split[4].charAt(7);
+            int target1 = Integer.parseInt(String.valueOf(split[1].charAt(8)));
+            int target2 = Integer.parseInt(String.valueOf(split[2].charAt(7)));
+            int target3 = Integer.parseInt(String.valueOf(split[3].charAt(7)));
+            int target4 = Integer.parseInt(String.valueOf(split[4].charAt(7)));
             Gate gate = new Gate("rc3x", new int[]{target1,target2,target3,target4}, new int[]{}, new String[]{});
             layer.addGate(gate);
             System.out.println(String.format("Gate: rc3x, targets: [%d, %d, %d, %d]", target1, target2, target3, target4));

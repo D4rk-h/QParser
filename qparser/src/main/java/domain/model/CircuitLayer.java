@@ -26,6 +26,7 @@ public class CircuitLayer {
 
     public int getNumberOfGates() {return numberOfGates;}
     public List<Gate> getGates() {return gates;}
+    public List<Measurement> getMeasurements() {return measurements;}
     public int getNumberOfMeasurements() {return numberOfMeasurements;}
 
 }

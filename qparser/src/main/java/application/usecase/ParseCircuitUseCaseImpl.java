@@ -13,7 +13,12 @@ public class ParseCircuitUseCaseImpl implements ParseCircuitUseCase {
     }
 
     @Override
-    public Circuit execute(String script, String scriptType) throws ParsingException {
-        return service.parseCircuit(script, scriptType);
+    public Circuit executeScriptToCircuit(String script, String scriptType) throws ParsingException {
+        return service.parseScriptToCircuit(script, scriptType);
+    }
+
+    @Override
+    public String executeCircuitToScript(Circuit circuit, String scriptType) throws ParsingException {
+        return service.parseCircuitToScript(circuit, scriptType);
     }
 }
