@@ -20,6 +20,17 @@ class QiskitParsingUtils {
                 line.contains("QuantumCircuit") || line.contains("append")) {
             return null;
         }
+        if (line.contains("RC3XGate")) {
+            String[] split = line.split(", ");
+            int target1 = split[1].charAt(8);
+            int target2 = split[2].charAt(7);
+            int target3 = split[3].charAt(7);
+            int target4 = split[4].charAt(7);
+            Gate gate = new Gate("rc3x", new int[]{target1,target2,target3,target4}, new int[]{}, new String[]{});
+            layer.addGate(gate);
+            System.out.println(String.format("Gate: rc3x, targets: [%d, %d, %d, %d]", target1, target2, target3, target4));
+            return layer;
+        }
         Matcher gateMatcher = GATE_PATTERN.matcher(line);
         if (!gateMatcher.find()) return null;
         String gateName = gateMatcher.group(1);
