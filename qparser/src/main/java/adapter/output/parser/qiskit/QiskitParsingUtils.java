@@ -1,13 +1,153 @@
 package adapter.output.parser.qiskit;
 
+import domain.model.CircuitLayer;
+import domain.model.Gate;
+import domain.model.Measurement;
+ import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class QiskitParsingUtils {
-    private final Pattern SINGLE_QUBIT = Pattern.compile("circuit\\.(\\w+)\\(qreg_q\\[(\\d+)\\]\\)");
-    private final Pattern ROTATION_GATE = Pattern.compile("circuit\\.(r\\w+)\\(([^,]+),\\s*qreg_q\\[(\\d+)\\](?:,\\s*qreg_q\\[(\\d+)\\])?\\)");
-    private final Pattern CONTROLLED_GATE = Pattern.compile("circuit\\.(c+\\w+)\\((.+?)\\)");
-    private final Pattern MEASUREMENT = Pattern.compile("circuit\\.measure\\(qreg_q\\[(\\d+)\\],\\s*creg_c\\[(\\d+)\\]\\)");
+    private final Pattern GATE_PATTERN = Pattern.compile("circuit\\.(\\w+)\\((.*)\\)");
+    private final Pattern QUBIT_PATTERN = Pattern.compile("qreg_q\\[(\\d+)\\]");
+    private final Pattern CLBIT_PATTERN = Pattern.compile("creg_c\\[(\\d+)\\]");
 
+    CircuitLayer processLine(String line) {
+        CircuitLayer layer = new CircuitLayer();
+        if (line.isEmpty() || line.startsWith("#") || line.startsWith("from") ||
+                line.contains("QuantumRegister") || line.contains("ClassicalRegister") ||
+                line.contains("QuantumCircuit") || line.contains("append")) {
+            return null;
+        }
+        Matcher gateMatcher = GATE_PATTERN.matcher(line);
+        if (!gateMatcher.find()) return null;
+        String gateName = gateMatcher.group(1);
+        String args = gateMatcher.group(2);
+        if (gateName.equals("measure")) {
+            Matcher qubitMatcher = QUBIT_PATTERN.matcher(args);
+            Matcher clbitMatcher = CLBIT_PATTERN.matcher(args);
+            if (qubitMatcher.find() && clbitMatcher.find()) {
+                int qubitIndex = Integer.parseInt(qubitMatcher.group(1));
+                int bitIndex = Integer.parseInt(clbitMatcher.group(1));
+                layer.addMeasurement(new Measurement(qubitIndex, bitIndex));
+                System.out.println("Measurement: qubit[" + qubitIndex + "] -> bit[" + bitIndex + "]");
+                return layer;
+            }
+            return null;
+        }
+        List<Integer> qubits = new ArrayList<>();
+        Matcher qubitMatcher = QUBIT_PATTERN.matcher(args);
+        while (qubitMatcher.find()) {
+            qubits.add(Integer.parseInt(qubitMatcher.group(1)));
+        }
 
+        if (qubits.isEmpty()) {
+            return null;
+        }
+        List<String> params = extractParameters(args);
+        Gate gate = createGate(gateName, qubits, params);
+        layer.addGate(gate);
+        printGateInfo(gate);
+        return layer;
+    }
 
+    private List<String> extractParameters(String args) {
+        List<String> params = new ArrayList<>();
+        String cleaned = args.replaceAll("qreg_q\\[\\d+\\]", "").trim();
+        String[] parts = cleaned.split(",");
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty() && isNumericParam(trimmed)) {
+                if (parseParameter(trimmed) != 0f) {
+                    params.add(String.valueOf(parseParameter(trimmed)));
+                }
+            }
+        }
+        return params;
+    }
+
+    private boolean isNumericParam(String param) {
+        return param.matches("[\\d\\.\\+\\-\\*/\\s]+") ||
+                param.contains("pi") ||
+                param.matches("-?\\d+(\\.\\d+)?");
+    }
+
+    private Gate createGate(String gateName, List<Integer> qubits, List<String> params) {
+        int[] targetQubits;
+        int[] controlQubits;
+        String[] parameters = params.toArray(new String[0]);
+        if (isControlledGate(gateName)) {
+            int numControls = getNumControls(gateName);
+            controlQubits = new int[Math.min(numControls, qubits.size() - 1)];
+            for (int i = 0; i < controlQubits.length; i++) controlQubits[i] = qubits.get(i);
+            targetQubits = new int[qubits.size() - controlQubits.length];
+            for (int i = 0; i < targetQubits.length; i++) targetQubits[i] = qubits.get(controlQubits.length + i);
+        } else if (isTwoQubitSymmetric(gateName)) {
+            targetQubits = qubits.stream().mapToInt(i -> i).toArray();
+            controlQubits = new int[]{};
+        } else {
+            targetQubits = qubits.stream().mapToInt(i -> i).toArray();
+            controlQubits = new int[]{};
+        }
+        return new Gate(gateName, targetQubits, controlQubits, parameters);
+    }
+
+    private boolean isControlledGate(String gateName) {
+        return gateName.startsWith("c") && !gateName.equals("creg") &&
+                (gateName.equals("cx") || gateName.equals("cy") || gateName.equals("cz") ||
+                        gateName.equals("ch") || gateName.equals("cu") || gateName.equals("ccx") ||
+                        gateName.equals("csx") || gateName.equals("rccx") || gateName.startsWith("c"));
+    }
+
+    private int getNumControls(String gateName) {
+        if (gateName.equals("ccx") || gateName.equals("rccx")) return 2;
+        if (gateName.startsWith("c") && !gateName.startsWith("cc")) return 1;
+        return 1;
+    }
+
+    private boolean isTwoQubitSymmetric(String gateName) {
+        return gateName.equals("swap") || gateName.equals("iswap") ||
+                gateName.equals("rxx") || gateName.equals("ryy") || gateName.equals("rzz");
+    }
+
+    private float parseParameter(String param) {
+        param = param.trim().replace("pi", String.valueOf(Math.PI));
+        try {
+            if (param.contains("/")) {
+                String[] parts = param.split("/");
+                return Float.parseFloat(parts[0].trim()) / Float.parseFloat(parts[1].trim());
+            }
+            if (param.contains("*")) {
+                String[] parts = param.split("\\*");
+                return Float.parseFloat(parts[0].trim()) * Float.parseFloat(parts[1].trim());
+            }
+            return Float.parseFloat(param);
+        } catch (NumberFormatException e) {
+            return 0f;
+        }
+    }
+
+    private void printGateInfo(Gate gate) {
+        StringBuilder sb = new StringBuilder("Gate: " + gate.name());
+        if (gate.targetQubits().length > 0) {
+            sb.append(", targets: ").append(arrayToString(gate.targetQubits()));
+        }
+        if (gate.controlQubits().length > 0) {
+            sb.append(", controls: ").append(arrayToString(gate.controlQubits()));
+        }
+        if (gate.parameters().length > 0) {
+            sb.append(", params: ").append(java.util.Arrays.toString(gate.parameters()));
+        }
+        System.out.println(sb);
+    }
+
+    private String arrayToString(int[] arr) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < arr.length; i++) {
+            sb.append(arr[i]);
+            if (i < arr.length - 1) sb.append(", ");
+        }
+        return sb.append("]").toString();
+    }
 }
