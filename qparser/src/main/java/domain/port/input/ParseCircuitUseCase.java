@@ -4,5 +4,6 @@ import domain.exception.ParsingException;
 import domain.model.Circuit;
 
 public interface ParseCircuitUseCase {
-    Circuit execute(String script, String scriptType) throws ParsingException;
+    Circuit executeScriptToCircuit(String script, String scriptType) throws ParsingException;
+    String executeCircuitToScript(Circuit circuit, String scriptType) throws ParsingException;
 }

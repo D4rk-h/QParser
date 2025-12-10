@@ -19,7 +19,7 @@ public class ApiRouteRegistry implements RouteRegistry {
     public void registerRoutes(Javalin app) {
         app.get("/health", healthController::health);
         app.get("/api/version", healthController::version);
-        app.post("/api/parse", circuitController::parseCircuit);
+        app.post("/api/parse", circuitController::parseScriptToCircuit);
         app.get("/api/supported-types", circuitController::getSupportedTypes);
         app.error(404, ctx ->
                 ctx.status(404).json(new ErrorResponseDto("Not Found",

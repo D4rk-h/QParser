@@ -1,10 +1,12 @@
 package adapter.output.parser.qasm;
 
 import domain.exception.ParsingException;
+import domain.model.Circuit;
 import domain.model.CircuitLayer;
 import domain.model.Gate;
 import domain.model.Measurement;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -180,6 +182,49 @@ class QasmParsingUtils {
             return Integer.parseInt(m.group(1));
         }
         return 0;
+    }
+
+    String parseObject(Circuit circuit, int nQubits, int nClBits) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("OPENQASM 2.0;\n");
+        sb.append("include \"qelib1.inc\";\n\n");
+        sb.append("qreg_q q[").append(nQubits).append("];\n");
+        sb.append("creg_c c[").append(nClBits).append("];\n");
+
+        for (CircuitLayer layer: circuit.layers()) {
+            for (Gate gate: layer.getGates()) {
+                sb.append("circuit.");
+                sb.append(gate.name()).append("(");
+                if (gate.parameters().length > 0) {
+                    sb.append("(");
+                }
+                List<String> params = new ArrayList<>();
+                for (String param: gate.parameters()) params.add(param);
+                sb.append(String.join(", ", params));
+                sb.append(")");
+                List<String> controlQubitStrs = new ArrayList<>();
+                for (Integer qubit: gate.controlQubits()) {
+                    controlQubitStrs.add("qreg_q[" + qubit + "]");
+                }
+                List<String> targetQubitStrs = new ArrayList<>();
+                for (Integer qubit: gate.targetQubits()) {
+                    targetQubitStrs.add("qreg_q[" + qubit + "]");
+                }
+                sb.append(", ");
+                if (controlQubitStrs.isEmpty()) {
+                    sb.append(String.join(", ", targetQubitStrs));
+                }
+                List<String> allQubits = new ArrayList<>();
+                allQubits.addAll(controlQubitStrs);
+                allQubits.addAll(targetQubitStrs);
+                sb.append(String.join(", ", allQubits));
+                sb.append(")\n");
+            }
+            for (Measurement meas: layer.getMeasurements()) {
+                sb.append("measure q[").append(meas.qubitIndex()).append("] -> c[").append(meas.bitIndex()).append("];\n");
+            }
+        }
+        return sb.toString();
     }
 
 }

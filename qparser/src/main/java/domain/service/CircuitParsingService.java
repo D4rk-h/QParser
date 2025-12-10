@@ -13,16 +13,26 @@ public class CircuitParsingService {
         this.parsers = parsers;
     }
 
-    public Circuit parseCircuit(String script, String scriptType) throws ParsingException {
+    public Circuit parseScriptToCircuit(String script, String scriptType) throws ParsingException {
         if (script == null || script.trim().isEmpty()) throw new ParsingException("Script cannot be empty");
         if (scriptType == null || scriptType.trim().isEmpty()) throw new ParsingException("Script type must be specified");
 
         CircuitParser parser = parsers.get(scriptType.toUpperCase());
         if (parser == null) throw new UnsupportedScriptTypeException("No parser available for script type: " + scriptType);
 
-        Circuit circuit = parser.parse(script);
+        Circuit circuit = parser.parseScript(script);
         validateCircuit(circuit);
         return circuit;
+    }
+
+    public String parseCircuitToScript(Circuit circuit, String scriptType) throws ParsingException {
+        if (circuit == null) throw new ParsingException("Circuit cannot be null");
+        if (scriptType == null || scriptType.trim().isEmpty()) throw new ParsingException("Script type must be specified");
+
+        CircuitParser parser = parsers.get(scriptType.toUpperCase());
+        if (parser == null) throw new UnsupportedScriptTypeException("No parser available for script type: " + scriptType);
+
+        return parser.parseObject(circuit);
     }
 
     private void validateCircuit(Circuit circuit) throws ParsingException {

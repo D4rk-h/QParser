@@ -4,6 +4,7 @@ import domain.exception.ParsingException;
 import domain.model.Circuit;
 
 public interface CircuitParser {
-    Circuit parse(String script) throws ParsingException;
+    Circuit parseScript(String script) throws ParsingException;
+    String parseObject(Circuit circuit) throws ParsingException;
     String getSupportedType();
 }

@@ -19,8 +19,7 @@ public class QasmParserAdapter implements CircuitParser {
     public QasmParserAdapter() {}
 
     @Override
-    public Circuit parse(String script) throws ParsingException {
-        //todo: implement possibility of having multiple gates in a layer
+    public Circuit parseScript(String script) throws ParsingException {
         String[] lines = script.split("\n");
         if (lines.length == 0 || !lines[0].contains("OPENQASM")) throw new ParsingException("Wrong script format: Expected qasm");
         int nQubits = 0;
@@ -37,6 +36,11 @@ public class QasmParserAdapter implements CircuitParser {
             }
         }
         return new Circuit(nQubits, nBits, layers);
+    }
+
+    @Override
+    public String parseObject(Circuit circuit) throws ParsingException {
+        throw new ParsingException("Not implemented yet");
     }
 
     public String getSupportedType() {
