@@ -4,7 +4,7 @@ import infrastructure.web.RouteRegistry;
 import io.javalin.Javalin;
 
 public class Main {
-    private static final String DEFAULT_PORT = System.getenv("DEFAULT_PORT");
+    private static final String DEFAULT_PORT = "8080";
 
     public static void main(String[] args) {
         int port = getPort(args);
@@ -18,14 +18,18 @@ public class Main {
     }
 
     private static int getPort(String[] args) {
-        String envPort = System.getenv("DEFAULT_PORT");
         if (args.length > 0) {
             try {return Integer.parseInt(args[0]);}
-            catch (NumberFormatException e) {System.err.println("Invalid port, using default: " + DEFAULT_PORT);}
+            catch (NumberFormatException e) {
+                System.err.println("Invalid port argument, using default: " + DEFAULT_PORT);
+            }
         }
+        String envPort = System.getenv("PORT");
         if (envPort != null && !envPort.isEmpty()) {
-            try {return Integer.parseInt(envPort);}
-            catch (NumberFormatException e) {System.err.println("Invalid env port, using default: " + DEFAULT_PORT);}
+            try {return Integer.parseInt(envPort);
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid PORT environment variable, using default: " + DEFAULT_PORT);
+            }
         }
         return Integer.parseInt(DEFAULT_PORT);
     }
