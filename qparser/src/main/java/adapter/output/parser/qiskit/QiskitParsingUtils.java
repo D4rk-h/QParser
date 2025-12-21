@@ -175,7 +175,7 @@ class QiskitParsingUtils {
         }
         sb.append("from numpy import pi\n\n");
         sb.append("qreg_q = QuantumRegister(").append(nQubits).append(")\n");
-        sb.append("creg_c = ClassicalRegister(").append(nClBits).append(")");
+        sb.append("creg_c = ClassicalRegister(").append(nClBits).append(")\n");
         sb.append("circuit = QuantumCircuit(qreg_q, creg_c)\n\n");
 
         for (CircuitLayer layer: circuit.layers()) {
@@ -186,42 +186,28 @@ class QiskitParsingUtils {
                     for (int qubit: gate.targetQubits()) {
                         sb.append("[");
                         sb.append("qreg_q[").append(qubit).append("]");
-                        if (qubit != gate.targetQubits()[gate.targetQubits().length - 1]) {
-                            sb.append(", ");
-                        }
+                        if (qubit != gate.targetQubits()[gate.targetQubits().length - 1]) sb.append(", ");
                     }
                     sb.append("])\n");
                     continue;
                 }
                 sb.append(gate.name()).append("(");
                 if (gate.parameters().length > 0) {
-                    sb.append("(");
+                    List<String> params = new ArrayList<>();
+                    for (String param: gate.parameters()) params.add(param);
+                    sb.append(String.join(", ", params));
                 }
-                List<String> params = new ArrayList<>();
-                for (String param: gate.parameters()) params.add(param);
-                sb.append(String.join(", ", params));
-                sb.append(")");
-                List<String> controlQubitStrs = new ArrayList<>();
-                for (Integer qubit: gate.controlQubits()) {
-                    controlQubitStrs.add("qreg_q[" + qubit + "]");
-                }
-                List<String> targetQubitStrs = new ArrayList<>();
-                for (Integer qubit: gate.targetQubits()) {
-                    targetQubitStrs.add("qreg_q[" + qubit + "]");
-                }
-                sb.append(", ");
-                if (controlQubitStrs.isEmpty()) {
-                    sb.append(String.join(", ", targetQubitStrs));
-                }
+
                 List<String> allQubits = new ArrayList<>();
-                allQubits.addAll(controlQubitStrs);
-                allQubits.addAll(targetQubitStrs);
-                sb.append(String.join(", ", allQubits));
+                for (int qubit: gate.controlQubits()) allQubits.add("qreg_q[" + qubit + "]");
+                for (int qubit: gate.targetQubits()) allQubits.add("qreg_q[" + qubit + "]");
+                if (!allQubits.isEmpty()) {
+                    if (gate.parameters().length > 0) sb.append(", ");
+                    sb.append(String.join(", ", allQubits));
+                }
                 sb.append(")\n");
             }
-            for (Measurement meas: layer.getMeasurements()) {
-                sb.append("circuit.measure(qreg_q[").append(meas.qubitIndex()).append("], creg_c[").append(meas.bitIndex()).append("])\n");
-            }
+            for (Measurement meas: layer.getMeasurements()) sb.append("circuit.measure(qreg_q[").append(meas.qubitIndex()).append("], creg_c[").append(meas.bitIndex()).append("])\n");
         }
         return sb.toString();
     }

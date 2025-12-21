@@ -188,8 +188,8 @@ class QasmParsingUtils {
         StringBuilder sb = new StringBuilder();
         sb.append("OPENQASM 2.0;\n");
         sb.append("include \"qelib1.inc\";\n\n");
-        sb.append("qreg_q q[").append(nQubits).append("];\n");
-        sb.append("creg_c c[").append(nClBits).append("];\n");
+        sb.append("qreg q[").append(nQubits).append("];\n");
+        sb.append("creg c[").append(nClBits).append("];\n");
 
         for (CircuitLayer layer: circuit.layers()) {
             for (Gate gate: layer.getGates()) {
@@ -204,11 +204,11 @@ class QasmParsingUtils {
                 sb.append(")");
                 List<String> controlQubitStrs = new ArrayList<>();
                 for (Integer qubit: gate.controlQubits()) {
-                    controlQubitStrs.add("qreg_q[" + qubit + "]");
+                    controlQubitStrs.add("qreg q[" + qubit + "]");
                 }
                 List<String> targetQubitStrs = new ArrayList<>();
                 for (Integer qubit: gate.targetQubits()) {
-                    targetQubitStrs.add("qreg_q[" + qubit + "]");
+                    targetQubitStrs.add("qreg q[" + qubit + "]");
                 }
                 sb.append(", ");
                 if (controlQubitStrs.isEmpty()) {
@@ -226,5 +226,4 @@ class QasmParsingUtils {
         }
         return sb.toString();
     }
-
 }
