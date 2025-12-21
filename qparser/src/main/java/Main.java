@@ -17,7 +17,7 @@ public class Main {
         Runtime.getRuntime().addShutdownHook(new Thread(app::stop));
     }
 
-    //todo: add a text formatter for letting user format the input of the curl
+    //todo: add in root dir a .bash text formatter for letting user format the input of the curl
     //todo: add the desire output format (json, qiskit, qasm)
     private static int getPort(String[] args) {
         String envPort = System.getenv("DEFAULT_PORT");
