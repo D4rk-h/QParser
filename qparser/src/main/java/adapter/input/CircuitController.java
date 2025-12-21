@@ -8,9 +8,6 @@ import domain.port.input.ParseCircuitUseCase;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 
-import java.util.Map;
-
-
 public class CircuitController {
     private final ParseCircuitUseCase parser;
     private final CircuitDtoMapper mapper;
@@ -29,10 +26,10 @@ public class CircuitController {
                     request.getScript(),
                     request.getScriptType()
             );
-            var response = mapper.toDto(circuit); // Todo: implement toDto Method in CircuitDtoMapper
+            var response = mapper.toDto(circuit);
             ctx.json(response).status(HttpStatus.OK);
         } catch (Exception e) {
-            ctx.json(Map.of("error", e.getMessage())).status(HttpStatus.BAD_REQUEST);
+            exceptionHandler.handle(e, ctx);
         }
     }
 

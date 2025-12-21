@@ -49,7 +49,7 @@ public class DependencyContainer {
         return new HttpExceptionHandler();
     }
 
-    public CircuitController circuitController() throws NoSuchMethodException {
+    public CircuitController circuitController() {
         return new CircuitController(
                 parseCircuitUseCase(),
                 circuitDtoMapper(),
@@ -61,7 +61,7 @@ public class DependencyContainer {
         return new HealthController("1.0.0", "Qparser API");
     }
 
-    public RouteRegistry routeRegistry() throws NoSuchMethodException {
+    public RouteRegistry routeRegistry() {
         return new ApiRouteRegistry(
                 circuitController(),
                 healthController()
