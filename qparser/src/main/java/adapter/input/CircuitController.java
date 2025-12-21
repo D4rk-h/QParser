@@ -23,8 +23,8 @@ public class CircuitController {
         try {
             ParseRequestDto request = ctx.bodyAsClass(ParseRequestDto.class);
             Circuit circuit = parser.executeScriptToCircuit(
-                    request.getScript(),
-                    request.getScriptType()
+                    request.script(),
+                    request.scriptType()
             );
             var response = mapper.toDto(circuit);
             ctx.json(response).status(HttpStatus.OK);
