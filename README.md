@@ -23,6 +23,7 @@ java -jar target/qparser-1.0.0.jar
 App will be running by default at **http://localhost:8080**
 
 ### Simple Request
+
 ```bash
 curl -X POST http://localhost:8080/api/parse \
   -H "Content-Type: application/json" \
@@ -32,7 +33,15 @@ curl -X POST http://localhost:8080/api/parse \
   }'
 ```
 
-## Endpoints
+#### If want to paste code directly:
+Use the formatter `_format_script.py` as follows:
+```bash
+cd qparser/
+python3 _format_script.py # Then just follow the instructions
+```
+It will return a formatted curl request to copy and paste in terminal.
+
+# Endpoints
 
 | Método | Endpoint | Description           |
 |--------|----------|-----------------------|
