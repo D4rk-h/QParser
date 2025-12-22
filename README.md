@@ -3,6 +3,8 @@ This REST API was meant to be useful for quantum software developers on
 the need of parsing between the two main quantum programming languages when developing quantum software products,
 being simple, clean in architecture and easy to use.
 
+> **⚠️ Under Active Development** - The API request script text formatting utility is currently under development.
+
 ### Getting Started
 
 #### Option 1: Run with Maven 
