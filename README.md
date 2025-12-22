@@ -1,7 +1,7 @@
 # QParser
 This REST API was meant to be useful for quantum software developers on 
 the need of parsing between the two main quantum programming languages when developing quantum software products,
-being simple and clean in development and easy to use.
+being simple, clean in architecture and easy to use.
 
 ### Getting Started
 
