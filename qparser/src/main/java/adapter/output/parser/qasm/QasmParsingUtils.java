@@ -107,15 +107,17 @@ class QasmParsingUtils {
         if (m.matches()) {
             String params = m.group(2);
             String targets = m.group(3);
-            float rotation = parseParameter(params.trim());
+            String[] paramArray = params.split(",");
+            List<String> rotations = new ArrayList<>();
+            for (String param : paramArray) {
+                rotations.add(String.valueOf(parseParameter(param.trim())));
+            }
             int[] qubits = extractQubits(targets);
             int[] controls = new int[qubits.length - 1];
             System.arraycopy(qubits, 0, controls, 0, controls.length);
             int[] targetQubits = new int[]{qubits[qubits.length - 1]};
-            Gate gate = new Gate(gateName, targetQubits, controls, new String[]{String.valueOf(rotation)});
+            Gate gate = new Gate(gateName, targetQubits, controls, rotations.toArray(new String[0]));
             layer.addGate(gate);
-            System.out.println("Gate: " + gateName + ", target: " + targetQubits[0] +
-                    ", controls: " + controls[0] + ", rotation: " + rotation);
         }
     }
 

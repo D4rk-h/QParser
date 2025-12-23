@@ -12,7 +12,7 @@ public class QasmParserAdapter implements CircuitParser {
     private final String supportedType = "QASM";
     private final List<String> rotationGates = List.of("rx", "rz", "ry", "u", "rxx", "rzz");
     private final List<String> controlledGates = List.of(
-            "cx", "cz", "ch", "ccx", "swap", "c3x", "c4x", "cp", "cswap", "crx", "cry", "crz", "cu");
+            "cx", "cz", "ch", "ccx", "swap", "c3x", "c4x", "cp", "cswap", "crx", "cry", "crz", "cu", "rccx", "rc3x");
     private final List<String> oneQubitGates = List.of("h", "x", "y", "z", "s", "sdg", "t", "tdg", "id");
     private final QasmParsingUtils utils = new QasmParsingUtils();
 
