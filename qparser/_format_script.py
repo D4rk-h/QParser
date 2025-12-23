@@ -11,41 +11,36 @@ def get_multiline_input():
         pass
     return "\n".join(lines)
 
-def send_parse_request(code: str, script_type:str, desired_type: str, port=8080):
-    url = f'http://localhost:{port}/api/parse'
-    headers = {'Content-Type': 'application/json'}
-    data = {
-        "script": f"{code}",
-        "scriptType": f"{script_type}",
-        "desiredType": f"{desired_type}"
-    }
-    response = requests.post(url, headers=headers, json=data)
+def send_request(url: str, data_dict: dict):
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(url, headers=headers, json=data_dict)
     return response.json()
 
 code = get_multiline_input()
 escaped_code = json.dumps(code)
-print(f'\n\nPaste this into your curl command:\n{escaped_code}')
+script_json = escaped_code
+script_type = "QASM" if "QASM" in escaped_code else "QISKIT"
+desired_type = "QISKIT" if script_type == "QASM" else "QASM"
+print(f"\nDetected script type as {script_type}")
+port = int(input("Default port at 3000, type any other if is preferred (format: NNNN) else press Enter: ") or 3000)
 
-print("\nDo you want the fully formatted json request? (y/n): ", end="")
+url = f"http://localhost:{port}/api/parse"
+data_dict = {
+    "script": json.loads(script_json),
+    "scriptType": script_type,
+    "desiredType": desired_type
+}
+
+curl_command = f'curl -X POST {url} -H "Content-Type: application/json" -d \'{json.dumps(data_dict)}\''
+
+print("\n\nDo you want me to send the request to the server(y)? or prefer a copy/paste curl command(n)?: ", end="")
 if input().lower() == 'y':
-    script_json = escaped_code
-    script_type = "QASM" if "QASM" in escaped_code else "QISKIT"
-    desired_type = "QISKIT" if script_type == "QASM" else "QASM"
-    print(f"\nDetected script type as {script_type}")
-    port = int(input("Introduce a port if other is preferred (default 8080) else press Enter: ") or 8080)
-    full_json_request = "\n\n" + "curl -X POST http://localhost:%d/api/parse \ "+"""\n  -H "Content-Type: application/json" \ """+"""\n  -d '{"""+"""\n      "script": %s,"""+"""\n      "scriptType": %s,"""+"""\n      "desiredType": %s"""+"""\n   }'"""
-    print(full_json_request % (port, script_json, script_type, desired_type))
-    print("\n\nDo you want me to sent the request to the server? (y/n): ", end="")
-    if input().lower() == 'y':
-        try:
-            script_type_request_format = f"{script_type}"
-            desired_type_request_format = f"{desired_type}"
-            response = send_parse_request(script_json, script_type_request_format, desired_type_request_format, port)
-            print(f'\nResponse from server:\n{json.dumps(response, indent=2)}')
-        except Exception as e:
-            print(f"Error - Make sure server is up: {e}")
-    else:
-        print(f'\nFull request:\n{full_json_request % (port, script_json, script_type, desired_type)}')
-        print(f"\n\nPaste this into your terminal to run the request. Ensure your server is running on port {port}.")
+    try:
+        response = send_request(url, data_dict)
+        print("\nRequest sent successfully!")
+        print(f'\nResponse from server:\n{json.dumps(response, indent=2)}')
+    except Exception as e:
+        print(f"Error - Make sure server is up: {e}")
 else:
-    print("\n   Exiting without full request.")
+    print(f'\nCopy/paste curl command:\n{curl_command}')
+    print("\n\nDone!")
