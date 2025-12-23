@@ -3,7 +3,7 @@ This REST API was meant to be useful for quantum software developers on
 the need of parsing between the two main quantum programming languages when developing quantum software products,
 being simple, clean in architecture and easy to use.
 
-> **⚠️ Under Active Development** - Working on developing a faster way than executing a python file to genereate request, probable solution: manage requests and responses with python files
+> **⚠️ Under Active Development** - Working on improving user experience
 
 ### Getting Started
 
@@ -39,7 +39,7 @@ Use the formatter `_format_script.py` as follows:
 cd qparser/
 python3 _format_script.py # Then just follow the instructions
 ```
-It will return a formatted curl request to copy and paste in terminal.
+It will return the desired type, parsed script.
 
 # Endpoints
 
@@ -54,6 +54,7 @@ It will return a formatted curl request to copy and paste in terminal.
 
 - Java 21+
 - Maven 3.6+
+- Python 3.9+ (libs: `requests`, `json`)
 
 ## Unsupported features
 
