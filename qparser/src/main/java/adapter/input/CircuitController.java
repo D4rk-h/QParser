@@ -1,7 +1,9 @@
 package adapter.input;
 
 import adapter.input.rest.HttpExceptionHandler;
+import adapter.input.rest.dto.CircuitResponseDto;
 import adapter.input.rest.dto.ParseRequestDto;
+import adapter.input.rest.dto.ParsedScriptResponseDto;
 import adapter.input.rest.mapper.CircuitDtoMapper;
 import domain.model.Circuit;
 import domain.port.input.ParseCircuitUseCase;
@@ -26,8 +28,14 @@ public class CircuitController {
                     request.script(),
                     request.scriptType()
             );
-            var response = mapper.toDto(circuit);
-            ctx.json(response).status(HttpStatus.OK);
+            if (request.desiredType() != null && !request.desiredType().trim().isEmpty()) {
+                String parsedScript = parser.executeCircuitToScript(circuit, request.desiredType());
+                ParsedScriptResponseDto response = new ParsedScriptResponseDto(parsedScript, request.desiredType());
+                ctx.json(response).status(HttpStatus.OK);
+            } else {
+                CircuitResponseDto response = mapper.toDto(circuit);
+                ctx.json(response).status(HttpStatus.OK);
+            }
         } catch (Exception e) {
             exceptionHandler.handle(e, ctx);
         }
