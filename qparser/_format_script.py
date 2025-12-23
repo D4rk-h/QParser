@@ -16,6 +16,15 @@ def send_request(url: str, data_dict: dict):
     response = requests.post(url, headers=headers, json=data_dict)
     return response.json()
 
+def pretty_print_script_text(response):
+    try:
+        parsed_script = response.get("parsedScript")
+        lines = [line for line in parsed_script.split("\n")]
+        pretty_script = "\n".join(lines)
+        return pretty_script
+    except json.JSONDecodeError:
+        return response
+
 code = get_multiline_input()
 escaped_code = json.dumps(code)
 script_json = escaped_code
@@ -39,6 +48,7 @@ if input().lower() == 'y':
         response = send_request(url, data_dict)
         print("\nRequest sent successfully!")
         print(f'\nResponse from server:\n{json.dumps(response, indent=2)}')
+        print(f"\nHere is your code: \n\n{pretty_print_script_text(response)}\n")
     except Exception as e:
         print(f"Error - Make sure server is up: {e}")
 else:
