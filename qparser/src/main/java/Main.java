@@ -4,6 +4,7 @@ import infrastructure.web.RouteRegistry;
 import io.javalin.Javalin;
 
 public class Main {
+    //todo: fix error parsing qasm to qiskit
     private static final String DEFAULT_PORT = System.getenv("DEFAULT_PORT");
 
     public static void main(String[] args) {
