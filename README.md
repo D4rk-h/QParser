@@ -5,13 +5,22 @@ being fast, simple, clean in architecture and easy to use.
 
 ### Getting Started
 
-#### Option 1: Run with Maven 
+#### Option 1: Run with a script
+Use the controller `_app_controller.py` as follows (this is the most fast and easy way to use the tool):
+```bash
+git clone https://github.com/D4rk-h/QParser.git
+cd QParser
+
+python3 _app_controller.py # And follow the instructions
+```
+
+#### Option 2: Run with Maven 
 ```bash
 cd qparser
 mvn clean compile exec:java -Dexec.mainClass="Main"
 ```
 
-#### Option 2: Build with Maven and Run with Java
+#### Option 3: Build with Maven and Run with Java
 ```bash
 cd qparser
 mvn clean package
@@ -20,20 +29,16 @@ java -jar target/qparser-1.0.0.jar
 
 App will be running by default at **http://localhost:3000**
 
-### Simple Request
-
-
-#### Automatically:
-Use the formatter `_format_script.py` as follows:
-```bash
-git clone https://github.com/D4rk-h/QParser.git
-cd QParser
-
-python3 _app_controller.py # And follow the instructions
-```
-It will return the desired type, parsed script.
+### Request format
 
 #### Manually
+If manual form is preferred then `_parse_code.py` script will be needed to be executed manually with:
+```bash
+cd qparser
+python3 _parse_code.py # And follow the instructions to let the script format the pasted code
+```
+
+After format the pasted code and run the main java class you can run manually this (with this format) curl request:
 ```bash
 curl -X POST http://localhost:3000/api/parse \
   -H "Content-Type: application/json" \
