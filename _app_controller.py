@@ -10,7 +10,28 @@ class AppController:
         self.api_process = None
         self.qparser_dir = "qparser"
         self.default_port = 3000
-        
+        self.python_executable = self._get_venv_python()
+
+    def _get_venv_python(self):
+        if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            print(f"Detected virtual environment Python: {sys.executable}")
+            return sys.executable
+        venv_paths = ['venv', '.venv', 'env', '.env']
+        for venv_path in venv_paths:
+            if os.path.exists(venv_path):
+                venv_python = os.path.join(venv_path, 'bin', 'python')
+                if os.path.exists(venv_python):
+                    print(f"Found virtual environment Python: {venv_python}")
+                    return venv_python
+                venv_python = os.path.join(venv_path, 'Scripts', 'python.exe')
+                if os.path.exists(venv_python):
+                    print(f"Found virtual environment Python: {venv_python}")
+                    return venv_python
+
+        print(f"Warning: No virtual environment detected. Using system Python: {sys.executable}")
+        print("Consider creating a virtual environment for better dependency isolation.")
+        return sys.executable
+
     def run_command(self, command, cwd=None, shell=True):
         try:
             print(f"\n{'='*60}")
@@ -86,8 +107,10 @@ class AppController:
         if not os.path.exists("qparser/_parse_code.py"):
             print("Error: qparser/_parse_code.py not found!")
             sys.exit(1)
+
+        print(f"Using Python interpreter: {self.python_executable}")
         try:
-            subprocess.run([sys.executable, "qparser/_parse_code.py"], check=True)
+            subprocess.run([self.python_executable, "qparser/_parse_code.py"], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error running qparser/_parse_code.py: {e}")
             self.cleanup()
